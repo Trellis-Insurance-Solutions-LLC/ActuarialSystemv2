@@ -1,0 +1,38 @@
+Term,Factor
+(Intercept),0.931098632758567
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)1",0.153200849321475
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)2",0.00137742435744726
+IncomeStartedY,-2.41891458766257
+"Benefit_Base_Bucket[100000, 200000)",-0.249985676390188
+"Benefit_Base_Bucket[200000, Inf)",-0.338729473320792
+"Benefit_Base_Bucket[50000, 100000)",-0.157400822647813
+"I(pmax(0, 4 - Duration))",-0.358674872761283
+SurrenderChargePeriod,0.0718403312859802
+I(Duration == SurrenderChargePeriod + 1)TRUE,2.13472782792444
+"poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)1",3.31505465172473
+"poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)2",-4.21449681299825
+"I(pmax(0.5, pmin(1, ITMness)))",-3.16184447006944
+"I(pmax(1, pmin(2, ITMness)))",-1.15717209704794
+"I(pmax(0, ChangeInTreasury))",35.4408097077316
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)1:IncomeStartedY",-0.0475413329089944
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)2:IncomeStartedY",0.000672806312295235
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)1:Benefit_Base_Bucket[100000, 200000)",0.0763149050501966
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)2:Benefit_Base_Bucket[100000, 200000)",0.00234424354188925
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)1:Benefit_Base_Bucket[200000, Inf)",0.0577584207560845
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)2:Benefit_Base_Bucket[200000, Inf)",0.00156198120112268
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)1:Benefit_Base_Bucket[50000, 100000)",0.0682532283448409
+"poly(pmin(0, Duration - SurrenderChargePeriod), 2, raw = TRUE)2:Benefit_Base_Bucket[50000, 100000)",0.00291547472994642
+"IncomeStartedY:Benefit_Base_Bucket[100000, 200000)",-0.134728779396966
+"IncomeStartedY:Benefit_Base_Bucket[200000, Inf)",-0.0656576115761846
+"IncomeStartedY:Benefit_Base_Bucket[50000, 100000)",-0.0925723455729023
+IncomeStartedY:I(Duration == SurrenderChargePeriod + 1)TRUE,-0.317088440996024
+"Benefit_Base_Bucket[100000, 200000):I(Duration == SurrenderChargePeriod + 1)TRUE",0.469928825868869
+"Benefit_Base_Bucket[200000, Inf):I(Duration == SurrenderChargePeriod + 1)TRUE",0.472851885434387
+"Benefit_Base_Bucket[50000, 100000):I(Duration == SurrenderChargePeriod + 1)TRUE",0.577678462673537
+"Benefit_Base_Bucket[100000, 200000):poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)1",0.705070763116629
+"Benefit_Base_Bucket[200000, Inf):poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)1",0.75719904977134
+"Benefit_Base_Bucket[50000, 100000):poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)1",0.544650716473373
+"Benefit_Base_Bucket[100000, 200000):poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)2",-0.826641853779992
+"Benefit_Base_Bucket[200000, Inf):poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)2",-0.839435686720885
+"Benefit_Base_Bucket[50000, 100000):poly(if_else(Duration > SurrenderChargePeriod, 1, 0)/pmax(1, pmin(3, Duration - SurrenderChargePeriod)), 2, raw = TRUE)2",-0.908776562309262
+"IncomeStartedY:I(pmax(0.5, pmin(1, ITMness)))",1.53610221716995

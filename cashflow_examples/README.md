@@ -1,0 +1,1 @@
+this folder contains output for some sample policies--the number in the filename corresponds to the policy_id in ACTUARIALSYSTEMV2/pricing_inforce.csv
