@@ -3,10 +3,12 @@
 mod state;
 mod engine;
 mod cashflows;
+mod irr;
 
 pub use state::ProjectionState;
 pub use engine::{ProjectionEngine, ProjectionConfig, CreditingApproach, HedgeParams};
 pub use cashflows::{CashflowRow, ProjectionResult};
+pub use irr::{calculate_irr, calculate_cost_of_funds};
 
 // ============================================================================
 // Default Crediting Rates

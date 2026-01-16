@@ -122,6 +122,20 @@ pub fn load_policies<P: AsRef<Path>>(path: P) -> Result<Vec<Policy>, Box<dyn Err
     Ok(policies)
 }
 
+/// Load policies from any reader (e.g., string buffer, network stream)
+pub fn load_policies_from_reader<R: std::io::Read>(reader: R) -> Result<Vec<Policy>, Box<dyn Error>> {
+    let mut csv_reader = Reader::from_reader(reader);
+    let mut policies = Vec::new();
+
+    for result in csv_reader.deserialize() {
+        let row: CsvRow = result?;
+        let policy = row.to_policy()?;
+        policies.push(policy);
+    }
+
+    Ok(policies)
+}
+
 /// Load policies from the default pricing_inforce.csv location
 pub fn load_default_inforce() -> Result<Vec<Policy>, Box<dyn Error>> {
     load_policies("pricing_inforce.csv")

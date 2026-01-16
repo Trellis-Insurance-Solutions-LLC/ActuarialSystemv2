@@ -54,7 +54,7 @@ fn main() {
 
     // Standard projection config - uses policy's crediting strategy
     let config = ProjectionConfig {
-        projection_months: 360,
+        projection_months: 768, // Run to terminal age 121 for youngest issue age 57
         crediting: CreditingApproach::PolicyBased {
             fixed_annual_rate: DEFAULT_FIXED_ANNUAL_RATE,
             indexed_annual_rate: DEFAULT_INDEXED_ANNUAL_RATE,
@@ -67,32 +67,6 @@ fn main() {
 
     println!("Running projections...");
     let proj_start = Instant::now();
-
-    // Debug: trace policy 2 (indexed) for first 14 months
-    if let Some(policy) = policies.iter().find(|p| p.policy_id == 2) {
-        println!("\n=== Debug: Policy 2 (Indexed) ===");
-        println!("Issue age: {}, Premium: {:.2}, Crediting: {:?}",
-                 policy.issue_age, policy.initial_premium, policy.crediting_strategy);
-        let engine = ProjectionEngine::new(assumptions.clone(), config.clone());
-        let result = engine.project_policy(policy);
-        println!("Month | BOP_AV | Mort | Lapse | PWD | RiderRate | AV_Persist | AV_Lost | HedgeGains");
-        for row in result.cashflows.iter().take(14) {
-            // Recalculate components for debug
-            let rider_rate = if row.bop_av > 0.0 {
-                row.rider_charge_rate * row.bop_benefit_base / row.bop_av
-            } else { 0.0 };
-            let av_persist = (1.0 - row.final_mortality)
-                * (1.0 - row.final_lapse_rate)
-                * (1.0 - row.non_systematic_pwd_rate)
-                * (1.0 - rider_rate).max(0.0);
-            let av_lost = row.bop_av * (1.0 - av_persist);
-            println!("{:5} | {:10.4} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6}",
-                     row.projection_month, row.bop_av, row.final_mortality,
-                     row.final_lapse_rate, row.non_systematic_pwd_rate,
-                     rider_rate, av_persist, av_lost, row.hedge_gains);
-        }
-        println!("=================================\n");
-    }
 
     // Run projections in parallel
     let results: Vec<Vec<CashflowRow>> = policies
@@ -108,7 +82,7 @@ fn main() {
 
     // Aggregate results by month
     println!("Aggregating results...");
-    let mut aggregated: Vec<AggregatedRow> = (1..=360)
+    let mut aggregated: Vec<AggregatedRow> = (1..=768)
         .map(|m| AggregatedRow { month: m, ..Default::default() })
         .collect();
 
@@ -180,15 +154,18 @@ fn main() {
              aggregated[0].total_lives,
              aggregated[0].total_bop_av,
              aggregated[0].total_bop_bb);
-    println!("  Month 60:  Lives={:.4}, BOP_AV=${:.0}",
-             aggregated[59].total_lives,
-             aggregated[59].total_bop_av);
     println!("  Month 120: Lives={:.4}, BOP_AV=${:.0}",
              aggregated[119].total_lives,
              aggregated[119].total_bop_av);
     println!("  Month 360: Lives={:.4}, BOP_AV=${:.0}",
              aggregated[359].total_lives,
              aggregated[359].total_bop_av);
+    println!("  Month 528: Lives={:.4}, BOP_AV=${:.0} (oldest issue age 77 reaches 121)",
+             aggregated[527].total_lives,
+             aggregated[527].total_bop_av);
+    println!("  Month 768: Lives={:.4}, BOP_AV=${:.0} (youngest issue age 57 reaches 121)",
+             aggregated[767].total_lives,
+             aggregated[767].total_bop_av);
 
     println!("\nTotal time: {:?}", start.elapsed());
 }

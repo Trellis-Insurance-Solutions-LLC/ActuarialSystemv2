@@ -45,10 +45,10 @@ fn main() {
     // Set up assumptions
     let assumptions = Assumptions::default_pricing();
 
-    // Configure projection - full 30 years
+    // Configure projection - run to terminal age 121
     // Using dynamic predictive lapse model and indexed annual credit
     let config = ProjectionConfig {
-        projection_months: 360,
+        projection_months: 768, // 64 years - youngest issue age 57 to terminal 121
         crediting: CreditingApproach::IndexedAnnual {
             annual_rate: DEFAULT_INDEXED_ANNUAL_RATE,
         },

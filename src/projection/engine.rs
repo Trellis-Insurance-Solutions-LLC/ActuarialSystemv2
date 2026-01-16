@@ -96,7 +96,7 @@ pub enum CreditingApproach {
 impl Default for ProjectionConfig {
     fn default() -> Self {
         Self {
-            projection_months: 360, // 30 years
+            projection_months: 768, // 64 years - runs youngest issue age (57) to terminal age (121)
             crediting: CreditingApproach::OptionBudget {
                 budget_rate: 0.0,  // Net zero crediting in year 1
                 equity_kicker: 0.0,
@@ -541,18 +541,16 @@ impl ProjectionEngine {
         // Hedge gains (indexed products only)
         self.calculate_hedge_gains(policy, state, row);
 
-        // Total net cashflow
+        // Total net cashflow = premium - (mortality + lapse + PWD + expenses + commission - chargebacks) + hedge_gains
+        // Commission = agent + IMO override + wholesaler override + bonus comp
+        // Note: Use _dec fields (not _cf) since _dec are already lives-weighted
+        let total_commission = row.agent_commission + row.imo_override + row.wholesaler_override + row.bonus_comp;
         row.total_net_cashflow = row.premium
-            - row.mortality_cf
-            - row.lapse_cf
-            - row.pwd_cf
-            + row.rider_charges_cf
-            + row.surrender_charges_cf
+            - row.mortality_dec
+            - row.lapse_dec
+            - row.pwd_dec
             - row.expenses
-            - row.agent_commission
-            - row.imo_override
-            - row.wholesaler_override
-            - row.bonus_comp
+            - total_commission
             + row.chargebacks
             + row.hedge_gains;
     }
@@ -573,9 +571,6 @@ impl ProjectionEngine {
             return;
         };
 
-        // Rate multiplier: full rate years 1-10, half rate years 11+
-        let rate_mult = if state.policy_year <= 10 { 1.0 } else { 0.5 };
-
         // Net appreciation factor: (1 + equity_kicker - financing_fee) = 1.15
         // "Bad math" per user: (1 + 20% - 5%) for derivative appreciation
         let net_appreciation = 1.0 + params.appreciation_rate - params.financing_fee;
@@ -584,7 +579,16 @@ impl ProjectionEngine {
         // the difference between what we credited and what the option cost us
         // R formula: BOPAV * pmax(0, CreditedRate - lag(BaseOptionBudget) * 1.05)
         // This naturally fires only when CreditedRate > 0 (i.e., at annual credit time)
-        let option_cost = params.option_budget * (1.0 + params.financing_fee);
+        // Note: We use LAGGED rate_mult because the derivatives being reimbursed were purchased
+        // during the previous policy year. At month 121 (first month of year 11), the credited rate
+        // is for year 10's derivatives, which had full rate.
+        let lagged_policy_year = if state.month_in_policy_year == 1 && state.policy_year > 1 {
+            state.policy_year - 1
+        } else {
+            state.policy_year
+        };
+        let lagged_rate_mult = if lagged_policy_year <= 10 { 1.0 } else { 0.5 };
+        let option_cost = params.option_budget * lagged_rate_mult * (1.0 + params.financing_fee);
         row.net_index_credit_reimbursement = (state.bop_av * (row.credited_rate - option_cost)).max(0.0);
 
         // Hedge gains from non-persisting policyholders
@@ -600,15 +604,32 @@ impl ProjectionEngine {
         };
 
         // Full monthly AV persistency per Excel column X formula
-        // R: (1-mort)*(1-lapse)*(1-pwd)*pmax(1-rider_rate, 0)
+        // R: (1-mort)*(1-lapse)*(1-pwd)*(1-rider_rate)
+        //
+        // TODO(INCORRECT): This formula allows negative persistency when rider_charge * BB > BOP_AV
+        // (i.e., when AV is exhausting). This matches Excel but is conceptually wrong - we shouldn't
+        // be capturing hedge gains on rider charges that exceed the actual AV available. The correct
+        // fix would be to cap av_lost at BOP_AV, but we're replicating Excel exactly first.
         let monthly_av_persistency = (1.0 - row.final_mortality)
             * (1.0 - row.final_lapse_rate)
             * (1.0 - row.non_systematic_pwd_rate)
-            * (1.0 - rider_rate).max(0.0);
+            * (1.0 - rider_rate);
 
         let av_lost = state.bop_av * (1.0 - monthly_av_persistency);
-        row.hedge_gains = av_lost * params.option_budget * rate_mult
-            * net_appreciation.powf(state.month_in_policy_year as f64 / 12.0)
+        // Use lagged month_in_policy_year for appreciation (except month 1)
+        // This represents how long the derivative was held before the decrement occurs
+        let lagged_month = if state.projection_month == 1 {
+            1 // No lag for first month
+        } else if state.month_in_policy_year == 1 {
+            12 // At month 1 of new year, lag is month 12 of prior year
+        } else {
+            state.month_in_policy_year - 1
+        };
+        // Both the av_lost component and the reimbursement use lagged rate_mult
+        // At month 121 (first month of year 11), the appreciation is for year 10's
+        // derivatives which had full rate (rate_mult = 1.0)
+        row.hedge_gains = av_lost * params.option_budget * lagged_rate_mult
+            * net_appreciation.powf(lagged_month as f64 / 12.0)
             + row.net_index_credit_reimbursement;
     }
 

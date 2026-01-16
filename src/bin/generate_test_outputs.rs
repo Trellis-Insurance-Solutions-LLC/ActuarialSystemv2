@@ -31,6 +31,17 @@ fn main() {
     // Define all test policies from pricing_inforce.csv
     // Format: QualStatus,IssueAge,Gender,InitialBB,InitialPols,InitialPremium,...,GLWBStartYear,WaitPeriod
     let test_policies = vec![
+        // Policy 2: N,57,Female,112.8484231,0.004042606,86.80647933,[0,50000),Indexed,2,SCPeriod=10,GLWBStartYear=1
+        TestPolicy {
+            policy_id: 2,
+            qual_status: QualStatus::N,
+            issue_age: 57,
+            gender: Gender::Female,
+            initial_bb: 112.8484231,
+            initial_pols: 0.004042606,
+            initial_premium: 86.80647933,
+            glwb_start_year: 1,
+        },
         // Policy 10: N,57,Female,463.2844779,0.016596393,356.3726753,[0,50000),0.003921188,Indexed,10,...,5,4
         TestPolicy {
             policy_id: 10,
@@ -41,6 +52,50 @@ fn main() {
             initial_pols: 0.016596393,
             initial_premium: 356.3726753,
             glwb_start_year: 5,
+        },
+        // Policy 22: N,57,Female,13208.30638,0.473165516,10160.23568,Indexed,GLWBStartYear=12,WaitPeriod=11
+        TestPolicy {
+            policy_id: 22,
+            qual_status: QualStatus::N,
+            issue_age: 57,
+            gender: Gender::Female,
+            initial_bb: 13208.30638,
+            initial_pols: 0.473165516,
+            initial_premium: 10160.23568,
+            glwb_start_year: 12,
+        },
+        // Policy 1234: N,77,Female,45757.28471,0.072922627,35197.91132,Indexed,GLWBStartYear=1,WaitPeriod=0 (AV exhausts ~month 123)
+        TestPolicy {
+            policy_id: 1234,
+            qual_status: QualStatus::N,
+            issue_age: 77,
+            gender: Gender::Female,
+            initial_bb: 45757.28471,
+            initial_pols: 0.072922627,
+            initial_premium: 35197.91132,
+            glwb_start_year: 1,
+        },
+        // Policy 1144: N,77,Female,11549.4487,0.387622541,8884.191306,Indexed,GLWBStartYear=15,WaitPeriod=14
+        TestPolicy {
+            policy_id: 1144,
+            qual_status: QualStatus::N,
+            issue_age: 77,
+            gender: Gender::Female,
+            initial_bb: 11549.4487,
+            initial_pols: 0.387622541,
+            initial_premium: 8884.191306,
+            glwb_start_year: 15,
+        },
+        // Policy 2178: N,67,Male,1121266.128,Indexed,GLWBStartYear=12 (largest hedge diff)
+        TestPolicy {
+            policy_id: 2178,
+            qual_status: QualStatus::N,
+            issue_age: 67,
+            gender: Gender::Male,
+            initial_bb: 1121266.128,
+            initial_pols: 3.941463896,
+            initial_premium: 862512.4062,
+            glwb_start_year: 12,
         },
         // Policy 100: N,57,Female,3225.474204,0.049357974,2481.134003,[50000,100000),0.014856668,Indexed,100,...,8,7
         TestPolicy {
@@ -104,7 +159,7 @@ fn main() {
 
     // Standard projection config
     let config = ProjectionConfig {
-        projection_months: 360,
+        projection_months: 768, // Run to terminal age 121
         crediting: CreditingApproach::IndexedAnnual {
             annual_rate: DEFAULT_INDEXED_ANNUAL_RATE,
         },
@@ -146,11 +201,11 @@ fn main() {
         let mut file = File::create(&csv_path).expect("Unable to create CSV file");
 
         // Write header matching the Rust output format
-        writeln!(file, "Month,PolicyYear,MonthInPY,Age,BOP_AV,BOP_BB,FinalMortality,FinalLapse,PWD_Rate,RiderChargeRate,CreditedRate,SurrChgPct,FPW_Pct,Lives,Mortality,Lapse,PWD,SurrChg,RiderChg,Interest,EOP_AV,BaseLapse,DynamicLapse,LapseSkew").unwrap();
+        writeln!(file, "Month,PolicyYear,MonthInPY,Age,BOP_AV,BOP_BB,FinalMortality,FinalLapse,PWD_Rate,RiderChargeRate,CreditedRate,SurrChgPct,FPW_Pct,Lives,Mortality,Lapse,PWD,SurrChg,RiderChg,Interest,EOP_AV,BaseLapse,DynamicLapse,LapseSkew,NetIndexCreditReimb,HedgeGains").unwrap();
 
         // Write all rows
         for row in &result.cashflows {
-            writeln!(file, "{},{},{},{},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.10},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8}",
+            writeln!(file, "{},{},{},{},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.10},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.8},{:.9},{:.9}",
                 row.projection_month,
                 row.policy_year,
                 row.month_in_policy_year,
@@ -175,6 +230,8 @@ fn main() {
                 row.base_lapse_component,
                 row.dynamic_lapse_component,
                 row.lapse_skew,
+                row.net_index_credit_reimbursement,
+                row.hedge_gains,
             ).unwrap();
         }
 
