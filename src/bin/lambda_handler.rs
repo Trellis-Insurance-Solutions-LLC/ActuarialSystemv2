@@ -32,6 +32,14 @@ pub struct ProjectionRequest {
     #[serde(default = "default_indexed_rate")]
     pub indexed_annual_rate: f64,
 
+    /// Option budget for hedge calculations (default: 3.15%)
+    #[serde(default = "default_option_budget")]
+    pub option_budget: f64,
+
+    /// Equity kicker / appreciation rate for hedge calculations (default: 20%)
+    #[serde(default = "default_equity_kicker")]
+    pub equity_kicker: f64,
+
     /// Treasury rate change for lapse sensitivity (default: 0)
     #[serde(default)]
     pub treasury_change: f64,
@@ -106,6 +114,8 @@ pub struct ProjectionRequest {
 fn default_projection_months() -> u32 { 768 }
 fn default_fixed_rate() -> f64 { DEFAULT_FIXED_ANNUAL_RATE }
 fn default_indexed_rate() -> f64 { DEFAULT_INDEXED_ANNUAL_RATE }
+fn default_option_budget() -> f64 { 0.0315 }  // 3.15%
+fn default_equity_kicker() -> f64 { 0.20 }    // 20%
 fn default_fixed_pct() -> f64 { 0.25 }
 fn default_one() -> f64 { 1.0 }
 fn default_bb_bonus() -> f64 { 0.30 }
@@ -343,7 +353,7 @@ async fn handler(event: Request) -> Result<Response<Body>, Error> {
     let mut assumptions = Assumptions::default_pricing();
     assumptions.product.glwb.rollup_rate = request.rollup_rate;
 
-    // Projection config
+    // Projection config with dynamic hedge params
     let config = ProjectionConfig {
         projection_months: request.projection_months,
         crediting: CreditingApproach::PolicyBased {
@@ -353,7 +363,11 @@ async fn handler(event: Request) -> Result<Response<Body>, Error> {
         detailed_output: false,
         treasury_change: request.treasury_change,
         fixed_lapse_rate: None,
-        hedge_params: Some(HedgeParams::default()),
+        hedge_params: Some(HedgeParams {
+            option_budget: request.option_budget,
+            appreciation_rate: request.equity_kicker,
+            financing_fee: 0.05,  // Hardcoded at 5%
+        }),
     };
 
     // Run projections in parallel

@@ -79,9 +79,8 @@ function NumberInput({ value, onChange, min, max, step = 1, decimals = 2 }: Numb
 // Types for the projection
 interface ProjectionConfig {
   fixedAnnualRate: number;
-  indexedAnnualRate: number;
+  optionBudget: number;
   equityKicker: number;
-  treasuryChange: number;
   bbbRate: number;
   spread: number;
   // Dynamic inforce parameters
@@ -173,9 +172,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [config, setConfig] = useState<ProjectionConfig>({
     fixedAnnualRate: 2.75,
-    indexedAnnualRate: 3.78,  // Indexed crediting rate (sent to backend)
-    equityKicker: 20,         // Gross equity kicker percentage
-    treasuryChange: 0,
+    optionBudget: 3.15,       // Option budget percentage
+    equityKicker: 20,         // Gross equity kicker percentage (indexed_rate = option_budget * (1 + equity_kicker))
     bbbRate: 5.01,  // Current BBB rate
     spread: 0.6,    // Default spread of 0.6%
     // Dynamic inforce parameters
@@ -228,14 +226,18 @@ export default function Home() {
     setError(null);
 
     try {
+      // Calculate indexed_annual_rate from option_budget and equity_kicker
+      const indexedAnnualRate = (config.optionBudget / 100) * (1 + config.equityKicker / 100);
+
       const response = await fetch("/api/projection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projection_months: 768,
           fixed_annual_rate: config.fixedAnnualRate / 100,
-          indexed_annual_rate: config.indexedAnnualRate / 100,
-          treasury_change: config.treasuryChange / 100,
+          indexed_annual_rate: indexedAnnualRate,
+          option_budget: config.optionBudget / 100,
+          equity_kicker: config.equityKicker / 100,
           bbb_rate: config.bbbRate / 100,
           spread: config.spread / 100,
           // Dynamic inforce parameters
@@ -311,14 +313,18 @@ export default function Home() {
     setExplorerError(null);
 
     try {
+      // Calculate indexed_annual_rate from option_budget and equity_kicker
+      const indexedAnnualRate = (config.optionBudget / 100) * (1 + config.equityKicker / 100);
+
       const response = await fetch("/api/projection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projection_months: 768,
           fixed_annual_rate: config.fixedAnnualRate / 100,
-          indexed_annual_rate: config.indexedAnnualRate / 100,
-          treasury_change: config.treasuryChange / 100,
+          indexed_annual_rate: indexedAnnualRate,
+          option_budget: config.optionBudget / 100,
+          equity_kicker: config.equityKicker / 100,
           bbb_rate: config.bbbRate / 100,
           spread: config.spread / 100,
           use_dynamic_inforce: config.useDynamicInforce,
@@ -597,6 +603,23 @@ export default function Home() {
 
                     <div>
                       <label className="block text-sm text-[--text-muted] mb-1">
+                        Option Budget (%)
+                      </label>
+                      <NumberInput
+                        value={config.optionBudget}
+                        onChange={(v) => setConfig({ ...config, optionBudget: v })}
+                        min={0}
+                        max={10}
+                        step={0.05}
+                        decimals={2}
+                      />
+                      <p className="text-xs text-[--text-muted] mt-1">
+                        Indexed crediting = {(config.optionBudget * (1 + config.equityKicker / 100)).toFixed(2)}%
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm text-[--text-muted] mb-1">
                         Equity Kicker (%)
                       </label>
                       <NumberInput
@@ -609,23 +632,6 @@ export default function Home() {
                       />
                       <p className="text-xs text-[--text-muted] mt-1">
                         Gross {config.equityKicker}% − 5% financing = {config.equityKicker - 5}% net
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-[--text-muted] mb-1">
-                        Treasury Rate Change (%)
-                      </label>
-                      <NumberInput
-                        value={config.treasuryChange}
-                        onChange={(v) => setConfig({ ...config, treasuryChange: v })}
-                        min={-5}
-                        max={5}
-                        step={0.1}
-                        decimals={1}
-                      />
-                      <p className="text-xs text-[--text-muted] mt-1">
-                        Affects dynamic lapse rates
                       </p>
                     </div>
 

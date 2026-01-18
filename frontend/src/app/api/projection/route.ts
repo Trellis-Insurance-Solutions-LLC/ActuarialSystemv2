@@ -8,6 +8,8 @@ interface ProjectionRequest {
   projection_months?: number;
   fixed_annual_rate?: number;
   indexed_annual_rate?: number;
+  option_budget?: number;    // Option budget for hedge params (as decimal, e.g., 0.0315 for 3.15%)
+  equity_kicker?: number;    // Equity kicker / appreciation rate (as decimal, e.g., 0.20 for 20%)
   treasury_change?: number;
   bbb_rate?: number;  // BBB rate for ceding commission (as decimal, e.g., 0.05 for 5%)
   spread?: number;    // Spread for ceding commission (as decimal)
@@ -105,6 +107,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const projectionMonths = body.projection_months ?? DEFAULT_PROJECTION_MONTHS;
     const fixedAnnualRate = body.fixed_annual_rate ?? DEFAULT_FIXED_ANNUAL_RATE;
     const indexedAnnualRate = body.indexed_annual_rate ?? DEFAULT_INDEXED_ANNUAL_RATE;
+    const optionBudget = body.option_budget ?? 0.0315;  // Default 3.15%
+    const equityKicker = body.equity_kicker ?? 0.20;    // Default 20%
     const treasuryChange = body.treasury_change ?? 0;
     const bbbRate = body.bbb_rate;  // Optional - only calculate ceding commission if provided
     const spread = body.spread ?? 0;
@@ -141,6 +145,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         projection_months: projectionMonths,
         fixed_annual_rate: fixedAnnualRate,
         indexed_annual_rate: indexedAnnualRate,
+        option_budget: optionBudget,
+        equity_kicker: equityKicker,
         treasury_change: treasuryChange,
         use_dynamic_inforce: useDynamicInforce,
         inforce_fixed_pct: inforceFixedPct,
