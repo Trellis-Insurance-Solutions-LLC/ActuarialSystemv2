@@ -352,6 +352,7 @@ async fn handler(event: Request) -> Result<Response<Body>, Error> {
     // Load assumptions and apply rollup rate override
     let mut assumptions = Assumptions::default_pricing();
     assumptions.product.glwb.rollup_rate = request.rollup_rate;
+    assumptions.product.glwb.bonus_rate = request.inforce_bb_bonus;
 
     // Projection config with dynamic hedge params
     let config = ProjectionConfig {
@@ -368,6 +369,7 @@ async fn handler(event: Request) -> Result<Response<Body>, Error> {
             appreciation_rate: request.equity_kicker,
             financing_fee: 0.05,  // Hardcoded at 5%
         }),
+        reserve_config: None, // Reserves off for API endpoint
     };
 
     // Run projections in parallel

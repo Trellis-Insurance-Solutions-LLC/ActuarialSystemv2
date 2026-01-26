@@ -150,6 +150,11 @@ pub struct ProjectionResult {
 
     /// Total present value of premiums
     pub pv_premiums: f64,
+
+    /// Reserve calculation result (if reserve_config was set)
+    /// None when reserves are not calculated (default, fast path)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reserve_result: Option<crate::reserves::ReserveResult>,
 }
 
 impl ProjectionResult {
@@ -159,6 +164,7 @@ impl ProjectionResult {
             cashflows: Vec::new(),
             pv_liabilities: 0.0,
             pv_premiums: 0.0,
+            reserve_result: None,
         }
     }
 

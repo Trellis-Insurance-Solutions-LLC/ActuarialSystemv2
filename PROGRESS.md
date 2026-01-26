@@ -149,20 +149,33 @@ runner.assumptions_mut().mortality.set_improvement_rate(0.02);
 
 ## Next Steps
 
-### Phase 2: Multi-Policy Projection
-- [ ] Load policies from CSV
-- [ ] Aggregate cashflows across cohort
-- [ ] Parallel projection support
+### Phase 2: Multi-Policy Projection ✓
+- [x] Load policies from CSV
+- [x] Aggregate cashflows across cohort
+- [x] Parallel projection support (via rayon)
 
-### Phase 3: Reserve Calculations
-- [ ] VM-22 reserve framework
-- [ ] CARVM calculations
-- [ ] Economic scenario generation
+### Phase 3: Reserve Calculations (In Progress)
+- [x] Reserve module structure (`src/reserves/`)
+- [x] Core types: `ReserveResult`, `PolicyState`, `ReserveComponents`
+- [x] Brute force CARVM solver (tests all activation times)
+- [x] Roll-forward caching for efficient multi-timestep calculations
+- [x] Separate death benefit and elective benefit calculations
+- [x] `ReserveCalcConfig` toggle in `ProjectionConfig`
+- [x] 22 reserve-specific tests passing
+- [ ] Dynamic programming solver (currently falls back to brute force)
+- [ ] AG33/AG35 specific logic
+- [ ] Integration with full projection state tracking
+- [ ] Validation against reference reserves
 
 ### Phase 4: Asset Modeling
 - [ ] Portfolio representation
 - [ ] Hedge strategy modeling
 - [ ] ALM analytics
+
+### Phase 5: VM-22 (Future)
+- [ ] Economic scenario generation
+- [ ] Stochastic scenario infrastructure
+- [ ] Company assumption framework
 
 ## Validation Approach
 

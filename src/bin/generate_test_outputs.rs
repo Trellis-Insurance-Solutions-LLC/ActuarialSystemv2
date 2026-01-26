@@ -167,6 +167,7 @@ fn main() {
         treasury_change: 0.0,
         fixed_lapse_rate: None, // Use predictive lapse model
         hedge_params: Some(HedgeParams::default()),
+        reserve_config: None,
     };
 
     for tp in &test_policies {

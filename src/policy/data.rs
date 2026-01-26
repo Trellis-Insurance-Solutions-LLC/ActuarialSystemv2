@@ -253,13 +253,15 @@ impl Policy {
     /// Calculate policy year at a given projection month
     pub fn policy_year(&self, projection_month: u32) -> u32 {
         let total_months = self.duration_months + projection_month;
-        (total_months - 1) / 12 + 1
+        // Use saturating_sub to handle the case when total_months is 0 (new issue at month 0)
+        total_months.saturating_sub(1) / 12 + 1
     }
 
     /// Calculate month within policy year at a given projection month
     pub fn month_in_policy_year(&self, projection_month: u32) -> u32 {
         let total_months = self.duration_months + projection_month;
-        ((total_months - 1) % 12) + 1
+        // Use saturating_sub to handle the case when total_months is 0
+        (total_months.saturating_sub(1) % 12) + 1
     }
 
     /// Check if policy is still in surrender charge period

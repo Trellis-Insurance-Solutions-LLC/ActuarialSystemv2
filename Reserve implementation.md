@@ -1,0 +1,7 @@
+
+
+we've built a pricing model so far that calculates the cost of funds based on total net cashflows, but we don't yet have any reserve functionality built. Reserves for annuities are generally simple to understand but programmatically tricky, as CARVM (the current regulatory regime) is essentially a maximization problem. for each policyholder (and ideally at each timestep), we'll need to project their guaranteed benefits forward and determine what the optimal behavior path is from the policyholder's perspective (assuming they act "perfectly rationally"). Then, depending on what the decrement is (mortality, surrender, GLWB utilization), the discount rate can vary. One can generally assume that if the state of a policy (e.g. income taking vs not) doesn't change from time(t) to time(t+1) and their optimal exercise timing of the optimal path is still in the future, then you can simply roll the reserve at time(t) forward at the appropriate discount rate.
+
+Additionally, we'll need to build the infrastructure for "VM22", which is principles-based reserves for fixed annuities. While there are a number of differences under this approach, the primary changes are that policyholder behavior and discount rates are not prescribed--they're based on your assumptions. Thus, the primary modeling change is that we'll have to project our model under different economic scenarios with different asset assumptions.
+
+We should focus on getting CARVM stood up first, then focus on a generalized framework for VM22 given the modeling complexity.

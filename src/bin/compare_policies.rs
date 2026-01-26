@@ -30,6 +30,7 @@ fn main() {
         treasury_change: 0.0,
         fixed_lapse_rate: None,
         hedge_params: Some(HedgeParams::default()),
+        reserve_config: None,
     };
 
     for policy_id in policy_ids {

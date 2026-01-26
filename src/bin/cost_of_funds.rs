@@ -288,6 +288,7 @@ fn main() {
     // Load assumptions and apply rollup rate override
     let mut assumptions = Assumptions::default_pricing();
     assumptions.product.glwb.rollup_rate = rollup_rate;
+    assumptions.product.glwb.bonus_rate = adjustment_params.bb_bonus;
 
     // Projection config from environment
     let config = ProjectionConfig {
@@ -300,6 +301,7 @@ fn main() {
         treasury_change,
         fixed_lapse_rate: None,
         hedge_params: Some(HedgeParams::default()),
+        reserve_config: None, // Reserves off for cost of funds calculation
     };
 
     if !json_output {

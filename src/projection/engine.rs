@@ -50,6 +50,11 @@ pub struct ProjectionConfig {
     /// Hedge/derivative parameters for indexed products
     /// Set to None to disable hedge gain calculations
     pub hedge_params: Option<HedgeParams>,
+
+    /// Reserve calculation configuration
+    /// Set to None to skip reserve calculations (default, fast)
+    /// Set to Some(config) to calculate reserves alongside projection
+    pub reserve_config: Option<crate::reserves::ReserveCalcConfig>,
 }
 
 /// Approach for crediting interest to account value
@@ -105,6 +110,7 @@ impl Default for ProjectionConfig {
             treasury_change: 0.0,
             fixed_lapse_rate: None,
             hedge_params: Some(HedgeParams::default()),
+            reserve_config: None, // Reserves off by default (fast path)
         }
     }
 }

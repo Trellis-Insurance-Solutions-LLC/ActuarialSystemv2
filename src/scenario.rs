@@ -132,6 +132,7 @@ mod tests {
                 treasury_change: 0.0,
                 fixed_lapse_rate: Some(0.05),
                 hedge_params: Some(HedgeParams::default()),
+                reserve_config: None,
             })
             .collect();
 
